@@ -1,4 +1,4 @@
-function [clusters, centroids] = kMeansClustering(mat_file,numClusters,numIterations)
+function [clusters, centroids] = kmeansclustering(mat_file,numClusters,numIterations)
     input = load(mat_file);
     input = input.guiInput;
     num_voxels = size(input.Dij,1);
