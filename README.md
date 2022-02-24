@@ -16,7 +16,7 @@
 
 * In MATLAB, make sure the default C++ compiler is set to the Visual Studio C++ compiler
 
-3. Run mex -setup cpp in the MATLAB CLI
+3. Run `mex -setup cpp` in the MATLAB CLI
 
 
 ## Compiling and running the application
@@ -25,6 +25,8 @@
 
 * `mex('-IC:\Program Files\IBM\ILOG\CPLEX_Studio201\cplex\include','-IC:\Program Files\IBM\ILOG\CPLEX_Studio201\concert\include','-LC:\Program Files\IBM\ILOG\CPLEX_Studio201\concert\lib\x64_windows_msvc14\stat_mda','-LC:\Program Files\IBM\ILOG\CPLEX_Studio201\cplex\lib\x64_windows_msvc14\stat_mda','-lcplex2010.lib','-lilocplex.lib','-lconcert.lib','run_FMO.cpp')`
 
+* this filepath may be different on your machine
+
 * If the mexfile was successfully compiled, you can verify by looking for a file with a .mexw64 extension
 
-3. To run the application, run the GUI, enter your custom parameters, and select .mat files
+3. To run the application, open samplingBenchmarkInterface.mlapp, enter your custom parameters, select a .mat file, and run
