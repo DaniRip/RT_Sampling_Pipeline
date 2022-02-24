@@ -1,52 +1,74 @@
-function [clusters, centroids] = kmeansclustering(mat_file,numClusters,numIterations)
-    input = load(mat_file);
-    input = input.guiInput;
-    num_voxels = size(input.Dij,1);
-    num_beamlets = size(input.Dij,2);
-    target_dose = input.targetDose;
-    beam_width = input.beamWidth;
-    d_beam_indicies = input.beamIndicies;
+function [ cluster, centr ] = kmeansclustering(mat_file, k )
 
-    avgPoints = rand(numClusters,num_beamlets);
-    for j = 1:num_beamlets
-        avgPoints(:,j) = avgPoints(:,j)*(max(input.Dij(:,j))-min(input.Dij(:,j)))+min(input.Dij(:,j));
+%kMeans Clusters data points into k clusters.
+%   Input args: k: number of clusters; 
+%   Output args: cluster: 1-by-n array with values of 0,...,k-1
+%   representing in which cluster the corresponding point lies in
+%   centr: m-by-k matrix of the m-dimensional centroids of the k clusters
+
+input = load(mat_file);
+P = input.guiInput;
+num_beamlets = size(input.Dij,2);
+target_dose = input.targetDose;
+beam_width = input.beamWidth;
+d_beam_indicies = input.beamIndicies;
+
+P = transpose(P);
+numP = size(P,2); % number of points
+dimP = size(P,1); % dimension of points
+
+% choose k unique random indices between 1 and size(P,2) (number of points)
+randIdx = randperm(numP,k);
+% initial centroids
+centr = P(:,randIdx);
+
+% init cluster array
+cluster = zeros(1,numP);
+
+% init previous cluster array clusterPrev (for stopping criterion)
+clusterPrev = cluster;
+
+% for reference: count the iterations
+iterations = 0;
+
+% init stopping criterion
+stop = false; % if stopping criterion met, it changes to true
+
+while stop == false
+    
+    % for each data point 
+    for idxP = 1:numP
+        % init distance array dist
+        dist = zeros(1,k);
+        % compute distance to each centroid
+        for idxC=1:k
+            dist(idxC) = norm(P(:,idxP)-centr(:,idxC));
+        end
+        % find index of closest centroid (= find the cluster)
+        [~, clusterP] = min(dist);
+        cluster(idxP) = clusterP;
     end
     
-    for i = 1:numClusters
-        j = ceil(rand*num_voxels);
-        while sum(ismember(avgPoints,input.Dij(j,:),'rows')) ~= 0
-            j = ceil(rand*num_voxels);
-        end
-        avgPoints(i,:) = input.Dij(j,:);
-    end
-    
-    for iter = 1:numIterations
-%         disp(strcat('Iteration:',{' '},string(iter)));
-        dataSetAssignments = [input.Dij ones(num_voxels,1)];
-        for i = 1:size(dataSetAssignments,1)
-           minDist = norm(dataSetAssignments(i,1:num_beamlets).' - avgPoints(1,:).');
-           minJ = 1;
-           for j = 1:size(avgPoints,1)
-               dist = norm(dataSetAssignments(i,1:num_beamlets).' - avgPoints(j,:).');
-               if dist <= minDist
-                   minJ = j;
-                   minDist = dist;
-               end
-           end
-           dataSetAssignments(i,num_beamlets+1) = minJ;
-        end
-        for i = 1:numClusters
-            splitSet(:,:,i) = {dataSetAssignments(dataSetAssignments(:,num_beamlets+1)==i,1:num_beamlets)};
-        end
+    % Recompute centroids using current cluster memberships:
         
-        
-        for i = 1:numClusters
-            avg = mean(splitSet{i},1);
-            avgPoints(i,:) = avg(1:num_beamlets);
-        end
+    % init centroid array centr
+    centr = zeros(dimP,k);
+    % for every cluster compute new centroid
+    for idxC = 1:k
+        % find the points in cluster number idxC and compute row-wise mean
+        centr(:,idxC) = mean(P(:,cluster==idxC),2);
     end
     
-    clusters = splitSet;
-    centroids = avgPoints;
+    % Checking for stopping criterion: Clusters do not chnage anymore
+    if clusterPrev==cluster
+        stop = true;
+    end
+    % update previous cluster clusterPrev
+    clusterPrev = cluster;
     
+    iterations = iterations + 1;
+    
+end
+
+fprintf('kMeans.m used %d iterations of changing centroids.\n',iterations);
 end
