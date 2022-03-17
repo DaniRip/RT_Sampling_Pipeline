@@ -55,12 +55,12 @@ public:
       s = "Objective = " + to_string(objVal);
 		outputs[1] = factory.createCharArray(s);
 
-      s = "Runtime = " + to_string(runtime) + " sec";
+      s = "FMO Runtime = " + to_string(runtime) + " sec";
 		outputs[2] = factory.createCharArray(s);
 
       //s = "Voxels(input) = " + to_string(voxels);
-      s = "num_target_voxels = " + to_string(num_target_voxels);
-		outputs[3] = factory.createCharArray(s);
+      //s = "num_target_voxels = " + to_string(num_target_voxels);
+		//outputs[3] = factory.createCharArray(s);
 
       //s = "Layers(input) = " + to_string(layers);
       /*for (int x=0;x<5;x++){
