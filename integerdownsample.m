@@ -6,6 +6,7 @@ function [d_target, d_OAR, num_target_voxels, num_OAR_voxels, num_beamlets, targ
     target_dose = input.targetDose;
     %beam_width = input.beamWidth;
     %d_beam_indicies = input.beamIndicies;
+    %voxel_indicies = input.voxelIndicies.
     
     d_target=input.Dij(input.structVoxels.target(1:sample_interval:end),:);
     d_OAR=input.Dij(input.structVoxels.OAR(1:sample_interval:end),:);
