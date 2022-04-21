@@ -6,7 +6,7 @@ function [d_target, d_OAR, num_target_voxels, num_OAR_voxels, num_beamlets, targ
     %   centr: m-by-k matrix of the m-dimensional centroids of the k clusters
 
     timerVal = tic;
-    [d_target, d_OAR, ~, ~, num_beamlets, target_dose] = integerdownsample(mat_file, sample_interval);
+    [d_target, d_OAR, ~, ~, num_beamlets, target_dose, ~] = integerdownsample(mat_file, sample_interval);
     state = false;
     count = 0;
     while count < 2
