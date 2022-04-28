@@ -19,20 +19,28 @@ function [d_target, d_OAR, num_target_voxels, num_OAR_voxels, num_beamlets, targ
         % init cluster array
         cluster = zeros(1,numP);
         
-        for idxP = 1:dimP
-            [~,idx] = max(P(idxP,:));
-            cluster(idxP) = idx;
-        end
-        
         % end up with a some#x1520 array where each column has the indices
         % of the voxels clustered to that specific beamlet
         % take the first voxel for each cluster, make a new (some#less than
         % 1520_x1520 matrix to pass to FMO
         
+        for idxP = 1:dimP
+            [~,idx] = max(P(idxP,:));
+            if cluster(1,idx) == 0
+                cluster(1,idx) = idxP;
+            end
+        end
+        
+        output = zeros(1,numP);
+        for x = 1:numP
+            output = [output; P(x,:)];
+        end
+        
+        output(1,:) = [];
         if state==false
-            d_target = cluster;
+            d_target = output;
         else
-            d_OAR = cluster;
+            d_OAR = output;
         end
         
         state = true;
