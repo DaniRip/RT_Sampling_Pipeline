@@ -11,8 +11,8 @@ function [d_target, d_OAR, num_target_voxels, num_OAR_voxels, num_beamlets, targ
     count = 0;
     
     % these currently aren't downsampled!
-    target_indicies = input.voxelIndicies.target;
-    OAR_indicies = input.voxelIndicies.OAR;
+    target_indicies = d_target;
+    OAR_indicies = d_OAR;
     indicies = [target_indicies;OAR_indicies];
     
     while count < 2
@@ -45,7 +45,7 @@ function [d_target, d_OAR, num_target_voxels, num_OAR_voxels, num_beamlets, targ
                 
                 dist = zeros(1,2);
                 
-                self_cluster = cluster(indxP);
+                self_cluster = cluster(indxP); % ERR
                 self_dist = norm(P(:,idxP)-centr(:,self_cluster));
                 % change this to radius of nearby indicies
                 neighbours = [idxP-1 idxP+1];
