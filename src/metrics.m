@@ -34,6 +34,7 @@ function [avg_deviation, max_overage, voxels_underdosed] = metrics(mat_file, fmo
     %# of voxels underdosed - how do I calculate this?
     %Multiply the original matrix with the FMO output, then step through
     %that result to find any voxels that are below the target dosage
+    %CHANGE THIS TO ONLY COUNT TARGET VOXELS
     D_vb_w_b = input.Dij*fmo_output;
     voxels_underdosed = 0;
     for i = 1:numel(D_vb_w_b)
