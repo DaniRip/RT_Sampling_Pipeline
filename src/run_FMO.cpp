@@ -69,8 +69,8 @@ public:
       //s = "" + to_string(d_target[0][0]);
 		//outputs[4] = factory.createCharArray(s);
 
-      //Array a = factory.createArray<float>({1,intensityVals.size()}, {intensityVals});
-      //outputs[2] = a;
+      outputs[3] = factory.createArray<float>({1,intensityVals.size()}, intensityVals.data(), intensityVals.data()+intensityVals.size());
+      // output to a text file, then use the txt file output and multiply it into the input.Dij to get solve for metrics
 	}
 };
 

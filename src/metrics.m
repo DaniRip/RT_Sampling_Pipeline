@@ -1,13 +1,14 @@
 function [avg_deviation, max_overage, voxels_underdosed] = metrics(mat_file, fmo_output)
     input = load(mat_file);
     input = input.guiInput;
-    num_beamlets = size(input.Dij,2);
-    target_dose = input.targetDose;
-    beam_width = input.beamWidth;
-    d_beam_indicies = input.beamIndicies;
-    voxel_indicies = input.voxelIndicies;
+    %num_beamlets = size(input.Dij,2);
+    %target_dose = input.targetDose;
+    %beam_width = input.beamWidth;
+    %d_beam_indicies = input.beamIndicies;
+    %voxel_indicies = input.voxelIndicies;
 
     %average deviation from limit
+    fmo_output = transpose(fmo_output);
     D_vb_w_b = input.Dij*fmo_output;
     deviation = 0;
     for i = 1:numel(D_vb_w_b)
