@@ -8,7 +8,8 @@ class MexFunction : public matlab::mex::Function {
 public:
 	void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs)
 	{
-		// This function runs when run_FMO is called in MATLAB
+		// Nice comment!
+      // This function runs when run_FMO is called in MATLAB
 		matlab::data::ArrayFactory factory;
 
 		matlab::data::CharArray charVector = inputs[0];
