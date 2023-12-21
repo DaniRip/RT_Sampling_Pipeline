@@ -1,9 +1,8 @@
 function [target_voxels_cluster, OAR_voxels_cluster, target_cluster_centr, OAR_cluster_centr, runtime] = kmeanspp_coordinates(mat_file, k)
-    %   kMeans Clusters data points into k clusters.
-    %   Input args: k: number of clusters;
-    %   Output args: cluster: 1-by-n array with values of 0,...,k-1
-    %   representing in which cluster the corresponding point lies in
-    %   centr: m-by-k matrix of the m-dimensional centroids of the k clusters
+    %%
+       % Produces clusters of voxels separated using kmeans algorithm. 
+       % Clusters are of type hashmap ["coordinates_centroid": [struct_voxels]
+    %%
 
     format long
     timerVal = tic;
@@ -79,38 +78,7 @@ function [target_voxels_cluster, OAR_voxels_cluster, target_cluster_centr, OAR_c
             end
         end
         count = count + 1;
-        %fprintf('Used %d iterations of changing centroids.\n',iterations);
     end
     runtime = toc(timerVal);
     delete(pool_obj);
-
-    % disp('target')
-    % disp('------------------------------------------------------------------------------------------------')
-    % for key = keys(target_voxels_cluster)
-    %     cell_arr1 = target_voxels_cluster(key{1});
-    %     disp(cell_arr1);
-    %     disp('------------------------------------------------------------------------------------------------')
-    % end
-    % disp('OAR')
-    % disp('------------------------------------------------------------------------------------------------')
-    % for key = keys(OAR_voxels_cluster)
-    %     cell_arr2 = OAR_voxels_cluster(key{1});
-    %     disp(cell_arr2);
-    %     disp('------------------------------------------------------------------------------------------------')
-    % end
-
-    disp('target')
-    disp('------------------------------------------------------------------------------------------------')
-    for key = keys(target_voxels_cluster)
-        cell_arr1 = length(target_voxels_cluster(key{1}));
-        disp(cell_arr1);
-        disp('------------------------------------------------------------------------------------------------')
-    end
-    disp('OAR')
-    disp('------------------------------------------------------------------------------------------------')
-    for key = keys(OAR_voxels_cluster)
-        cell_arr2 = length(OAR_voxels_cluster(key{1}));
-        disp(cell_arr2);
-        disp('------------------------------------------------------------------------------------------------')
-    end
 end

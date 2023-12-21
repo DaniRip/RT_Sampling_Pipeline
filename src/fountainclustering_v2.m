@@ -1,4 +1,8 @@
 function [target_voxels_cluster, OAR_voxels_cluster, target_cluster_centr, OAR_cluster_centr, runtime] = fountainclustering_v2(mat_file)
+    %%
+       % Produces clusters of voxels grouped wrt dominant beamlets, bemalet
+       % with the maximum intensity.
+    %%
     timerVal = tic;
     [d_target, d_OAR, ~, ~, ~, ~, ~, ~, ~] = integerdownsample(mat_file, 1);
     state = false;

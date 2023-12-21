@@ -1,11 +1,8 @@
 function [target_voxels_cluster, OAR_voxels_cluster, target_cluster_centr, OAR_cluster_centr, runtime] = manham_pp_parallel(mat_file, k)
-    %   kMeans Clusters data points into k clusters.
-    %   Input args: k: number of clusters;
-    %   Output args: cluster: 1-by-n array with values of 0,...,k-1
-    %   representing in which cluster the corresponding point lies in
-    %   centr: m-by-k matrix of the m-dimensional centroids of the k clusters
-
-    format long
+    %%
+       % Produces clusters of voxels separated using kmeans mahnam algorithm. 
+       % Clusters are of type hashmap ["centroid": [struct_voxels]
+    %%
 
     timerVal = tic;    
     [d_target, d_OAR, num_target_voxels, num_OAR_voxels, voxel_coord_target, voxel_coord_OAR, ~, ~, ~] = integerdownsample(mat_file, 1);
@@ -114,27 +111,4 @@ function [target_voxels_cluster, OAR_voxels_cluster, target_cluster_centr, OAR_c
     end
     runtime = toc(timerVal);
     delete(pool_obj);
-
-    % disp('target')
-    % disp('------------------------------------------------------------------------------------------------')
-    % val = true;
-    % for key = keys(target_voxels_cluster)
-    %     cell_arr1 = target_voxels_cluster(key{1});
-    %     if isempty(cell_arr1)
-    %         val = False;
-    %     end
-    %     disp(cell_arr1);
-    %     disp('------------------------------------------------------------------------------------------------')
-    % end
-    % disp('OAR')
-    % disp('------------------------------------------------------------------------------------------------')
-    % for key = keys(OAR_voxels_cluster)
-    %     cell_arr2 = OAR_voxels_cluster(key{1});
-    %     if isempty(cell_arr2)
-    %         val = False;
-    %     end
-    %     disp(cell_arr2);
-    %     disp('------------------------------------------------------------------------------------------------')
-    % end
-    % disp(val);
 end
