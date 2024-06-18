@@ -2,76 +2,56 @@
 #include "mexAdapter.hpp"
 #include "run_FMO.h"
 
-// to compile call the line below in matlab
+// Original code by Danielle, adapted to MATLAB by William
+// to compile call the line below in matlab (update for your version and location of CPLEX)
 // mex('-IC:\Program Files\IBM\ILOG\CPLEX_Studio201\cplex\include','-IC:\Program Files\IBM\ILOG\CPLEX_Studio201\concert\include','-LC:\Program Files\IBM\ILOG\CPLEX_Studio201\concert\lib\x64_windows_msvc14\stat_mda','-LC:\Program Files\IBM\ILOG\CPLEX_Studio201\cplex\lib\x64_windows_msvc14\stat_mda','-lcplex2010.lib','-lilocplex.lib','-lconcert.lib','run_FMO.cpp')
+// Updated by Dani June 16, 2024
+
 class MexFunction : public matlab::mex::Function {
 public:
 	void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs)
 	{
-		// Nice comment!
-      // This function runs when run_FMO is called in MATLAB
+        // This function runs when run_FMO is called in MATLAB
 		matlab::data::ArrayFactory factory;
 
-		matlab::data::CharArray charVector = inputs[0];
-		string samplingType = charVector.toAscii();
+        int inputNum = 0;
 
-		string y = "0";
-      charVector = inputs[1];
-		y = charVector.toAscii();
-      double voxels = stod(y);
+        matlab::data::TypedArray<bool> obj_array = move(inputs[inputNum++]);
+        bool objectives[3];
+        int count = 0;
+        for (auto& val : obj_array)
+        {
+            objectives[count] = val;
+            count++;
+        }
 
-		charVector = inputs[2];
-		y = charVector.toAscii();
-      double layers = stod(y);
-
-      matlab::data::TypedArray<bool> obj_array = move(inputs[3]);
-      bool objectives[3];
-      int count = 0;
-      for (auto& val : obj_array)
-      {
-         objectives[count] = val;
-         count++;
-      }
-
-      matlab::data::TypedArray<double> d_target = move(inputs[4]); //2d array, not in column major order
-      matlab::data::TypedArray<double> d_OAR = move(inputs[5]);
-
-      matlab::data::Array doubleArray= move(inputs[6]);
-      int num_target_voxels = doubleArray[0];
-      doubleArray= move(inputs[7]);
-      int num_OAR_voxels = doubleArray[0];
-      doubleArray= move(inputs[8]);
-      int num_beamlets = doubleArray[0];
-      doubleArray= move(inputs[9]);
-      double target_dose = doubleArray[0];
-
-		float objVal, runtime;
-      vector<float> intensityVals;
-		string status;
-		FMO(objVal, intensityVals, status, runtime, objectives, d_target, d_OAR, num_target_voxels, num_OAR_voxels, num_beamlets, target_dose);
-
-      string s = "Status = " + status;
-      outputs[0] = factory.createCharArray(s);
-
-      s = "Objective = " + to_string(objVal);
-		outputs[1] = factory.createCharArray(s);
-
-      s = "FMO Runtime = " + to_string(runtime) + " sec";
-		outputs[2] = factory.createCharArray(s);
-
-      //s = "Voxels(input) = " + to_string(voxels);
-      //s = "num_target_voxels = " + to_string(num_target_voxels);
-		//outputs[3] = factory.createCharArray(s);
-
-      //s = "Layers(input) = " + to_string(layers);
-      /*for (int x=0;x<5;x++){
-         s = s + to_string(d_target[x]);
-      }*/
-      //s = "" + to_string(d_target[0][0]);
-		//outputs[4] = factory.createCharArray(s);
-
-      outputs[3] = factory.createArray<float>({1,intensityVals.size()}, intensityVals.data(), intensityVals.data()+intensityVals.size());
-      // output to a text file, then use the txt file output and multiply it into the input.Dij to get solve for metrics
+        matlab::data::TypedArray<double> d_target = move(inputs[inputNum++]); //2d array, not in column major order
+        matlab::data::TypedArray<double> d_OAR = move(inputs[inputNum++]);
+        
+        matlab::data::Array doubleArray= move(inputs[inputNum++]);
+        int num_target_voxels = doubleArray[0];
+        doubleArray= move(inputs[inputNum++]);
+        int num_OAR_voxels = doubleArray[0];
+        doubleArray= move(inputs[inputNum++]);
+        int num_beamlets = doubleArray[0];
+        doubleArray= move(inputs[inputNum++]);
+        double target_dose = doubleArray[0];
+        
+        float objVal, runtime;
+        vector<float> intensityVals;
+        string status;
+        FMO(objVal, intensityVals, status, runtime, objectives, d_target, d_OAR, num_target_voxels, num_OAR_voxels, num_beamlets, target_dose);
+        
+        string s = "Status = " + status;
+        outputs[0] = factory.createCharArray(s);
+        
+        s = "Objective = " + to_string(objVal);
+        outputs[1] = factory.createCharArray(s);
+        
+        s = "FMO Runtime = " + to_string(runtime) + " sec";
+        outputs[2] = factory.createCharArray(s);
+                
+        outputs[3] = factory.createArray<float>({1,intensityVals.size()}, intensityVals.data(), intensityVals.data()+intensityVals.size());
 	}
 };
 
@@ -94,9 +74,6 @@ void FMO(float &objVal, vector<float> &intensityVals, string &status, float &run
       // You need to assign the Dij matrices into these guys!
       IloInt b, v;
 
-      //float d_[downsampled_beamlets][downsampled_voxels];
-      //readIn(D_Matrix, downsampled, downsampled_beamlets, downsampled_voxels);
-      //readIn();
       assignValues(env, vDose, D_tumor, D_OAR, d_target, d_OAR, num_target_voxels, num_OAR_voxels, num_beamlets, target_dose);
 
       // Initialize CPLEX model
@@ -167,25 +144,6 @@ void FMO(float &objVal, vector<float> &intensityVals, string &status, float &run
 
    return;
 }
-/*
-void readIn(float &D_Matrix[][], matlab::data::TypedArray &downsampled, int downsampled_beamlets, int downsampled_voxels)
-{
-   int countrows = 0, countcols = 0;
-   for (auto it = downsampled.begin(); it != downsampled.end(); it++)
-   {
-      if(countrows == downsampled_beamlets)
-      {
-         countcols++;
-         countrows = 0;
-      }
-
-      if (countrows < downsampled_voxels)
-      {
-         D_Matrix[countrows][countcols] = *it;
-      }
-      countrows++;
-   }
-}*/
 
 /* Data readin and assignment function */
 static void assignValues(IloEnv env, IloNumArray vDose, IloNumArray2 D_tumor, IloNumArray2 D_OAR, matlab::data::TypedArray<double> &d_target, matlab::data::TypedArray<double> &d_OAR, int num_target_voxels, int num_OAR_voxels, int num_beamlets, double target_dose)
@@ -222,28 +180,6 @@ static void assignValues(IloEnv env, IloNumArray vDose, IloNumArray2 D_tumor, Il
          D_OAR[x].add(IloNum(d_OAR[x][y]));
       }
    }
-
-   /*print
-   IloNumArray test = IloNumArray(env, 5);
-   for (int x=0;x<num_OAR_voxels;x++){
-      cout << "\n";
-      for (int y=0;y<num_beamlets;y++){
-         cout << " " << d_OAR[x][y];
-         test.add(d_OAR[x][y]);
-      }
-   }
-
-   cout << "size = " << test.getSize() << " ";
-   for (int x=0;x<test.getSize();x++){
-      cout << "\n";
-      cout << " " << test[x];
-   }*/
-
-   /*D_tumor[0] = IloNumArray(env, NUMBEAMLETS, 0.1, 0.0, 0.07, 0.03, 0.02);
-   D_tumor[1] = IloNumArray(env, NUMBEAMLETS, 0.2, 0.15, 0.04, 0.0, 0.0);
-   D_tumor[2] = IloNumArray(env, NUMBEAMLETS, 0.0, 0.02, 0.05, 0.0, 0.08);
-
-   D_OAR[0] = IloNumArray(env, NUMBEAMLETS, 0.06, 0.03, 0.01, 0.04, 0.09);*/
 }
 
 /* Constraints for restricting the minimum dose on all tumor voxels*/
