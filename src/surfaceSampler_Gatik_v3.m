@@ -1,73 +1,80 @@
-function [target_cluster, OAR_cluster, runtime] = surfaceSampler_Gatik_v3(mat_file)
-    %%
-       % Produces clusters of voxels with layers working inwards. Each
-       % cluster(layer) consists of list of indices of struct_voxels.
-       % Note: If you notice an isolated boundary point in an alphaShape, try
-       % increasing the alpha value.
-    %%
+function [d_mat, final_voxel_coords, runtime] = surfaceSampler_Gatik_v3(d_mat, coordinates, nLayer, k)
+%%
+   % Produces clusters of voxels with layers working inwards. Each
+   % cluster(layer) consists of list of indices of struct_voxels.
+   % Note: If you notice an isolated boundary point in an alphaShape, try
+   % increasing the alpha value.
+%%
+% Inputs:
+%   > d_mat: Any structure's Dij matrix
+%   > coordinates: The x-y-z coordinates over every voxel in d_mat
+%   > nLayer: The sampling rate of an every n-layer sampling
+%   > k: Total number of desired voxels for a reverse sampling approach
+%   Note: either nLayer or k may be empty, but not both!
+%
+% Written by Gatik Gola Nov. 2023
+% Updated by Dani June 18, 2024
+%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%
+
+
     timerVal = tic;    
-    [~, ~, ~, ~, voxel_coord_target, voxel_coord_OAR, ~, ~, ~] = integerdownsample(mat_file, 1);
 
-    state = false;
-    count = 0; % for target and OAR
-
-    while count < 2
-        if state == false
-            coordinates = voxel_coord_target;
-        else
-            coordinates = voxel_coord_OAR;
-        end
-        points = coordinates;
-        layer = 1;
-        cur_length = size(points, 1);
-        prev_length = 0;
-        while prev_length ~= cur_length
-            prev_length = cur_length;
-            x = points(:, 1);
-            y = points(:, 2);
-            z = points(:, 3);
-            alpha_value = 2.0; % Pick max voxel dimension from (x, y, z)
-            shp = alphaShape(x, y, z, alpha_value);
-            boundary_facets = boundaryFacets(shp);
-            boundary_points_indices = unique(boundary_facets(:));
-            layer_voxels(layer).Vox = boundary_points_indices;
+    % Build out the layers:
+    points = coordinates;
+    layer = 0;
+    indices = 1:size(points, 1);
+    indices=indices';
+    alpha_value = 1.5;%2.0; % Pick max voxel dimension from (x, y, z)
+    while ~isempty(points)
+        layer = layer + 1;
+        x = points(:, 1);
+        y = points(:, 2);
+        z = points(:, 3);
+        shp = alphaShape(x, y, z, alpha_value);
+        boundary_facets = boundaryFacets(shp);
+        boundary_points_indices = unique(boundary_facets(:));
+        if isempty(boundary_points_indices)
+            % Put the remaining points in the last layer
+            points = [];
+            indices = [];
+        else 
+            layer_voxels(layer).Vox = indices(boundary_points_indices);
             points(boundary_points_indices, :) = [];
-            layer = layer + 1;
-            cur_length = size(points, 1);
-            disp(size(points));
-            if size(points, 1) == 48
-                break;
-            end
+            indices(boundary_points_indices)=[];
         end
-    
-        % % Plot the alpha shape and points on the surface
-        % figure;
-        % plot(shp);
-        % hold on;
-        % points_on_boundary = points(boundary_points_indices, :);
-        % plot3(points_on_boundary(:, 1), points_on_boundary(:, 2), points_on_boundary(:, 3), 'r.', 'MarkerSize', 10);
-        % zmin = -35;
-        % zmax = -12;
-        % zlim([zmin, zmax]);
-        % title('Alpha Shape and Points on Surface');
-        % xlabel('X-axis');
-        % ylabel('Y-axis');
-        % zlabel('Z-axis');
-        % hold off;
-    
-        target_cluster = containers.Map;
-        OAR_cluster = containers.Map;
-        for layer = 1:length(layer_voxels)
-            layer_str = num2str(layer);
-            if count == 0
-                target_cluster(layer_str) = layer_voxels(layer).Vox;
-            else
-                OAR_cluster(layer_str) = layer_voxels(layer).Vox;
-            end
-        end
-        state = true;
-        count = count + 1;
     end
+
+    nTotal=0;
+    final_voxel_coords=[];
+    % Sample every n layers:
+    if ~isempty(nLayer)
+        for ii = 1:nLayer:layer
+            final_voxel_coords =[final_voxel_coords; layer_voxels(ii).Vox];
+            nTotal = nTotal+numel(layer_voxels(ii).Vox);
+        end
+    else
+        % If we're targetting a specific number of layers, 
+        isFull = false;
+        % Calculate the size of each vector using arrayfun
+        layerSizes = arrayfun(@(x) numel(x.Vox), layer_voxels);
+        usedIndices = zeros(1,numel(layerSizes));
+        while ~isFull
+            currentFit = layerSizes<k-nTotal;
+            currentFit(usedIndices==1)=0;
+            if sum(currentFit)==0
+                isFull=true;
+            else 
+                [~,currInd] = find(currentFit);
+                final_voxel_coords =[final_voxel_coords; layer_voxels(currInd(1)).Vox];
+                usedIndices(currInd(1))=1;
+                nTotal = nTotal+layerSizes(currInd(1));
+            end
+        end
+    end
+
+    final_voxel_coords=sort(final_voxel_coords);
+    d_mat = d_mat(final_voxel_coords,:);
+
     runtime = toc(timerVal);
 end
     

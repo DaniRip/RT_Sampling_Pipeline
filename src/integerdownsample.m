@@ -1,4 +1,4 @@
-function [d_mat, final_num_voxels, final_voxel_coords, runtime] = integerdownsample(d_mat, voxel_indices, n)
+function [d_mat, final_voxel_indices, runtime] = integerdownsample(d_mat, n)
 % INTEGERDOWNSAMPLE A quick function to return every n voxels
 %
 % Updated by Danielle Ripsman June 16, 2024
@@ -6,9 +6,9 @@ function [d_mat, final_num_voxels, final_voxel_coords, runtime] = integerdownsam
 
     timerVal = tic;
 
-    final_voxel_coords = voxel_indices(1:n:end);
+    voxel_indices = 1:(size(d_mat,1));
+    final_voxel_indices = voxel_indices(1:n:end);
     d_mat=d_mat(final_voxel_coords, :);
-    final_num_voxels = numel(final_voxel_coords);
 
     runtime = toc(timerVal);
 

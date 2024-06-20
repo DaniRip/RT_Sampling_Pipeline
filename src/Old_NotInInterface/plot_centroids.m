@@ -1,14 +1,9 @@
-function plot_centroids(target_or_OAR, cluster, centr, mat_file)
+function plot_centroids(coordinates, cluster, centr)
     %%
         % Plots centroids of clusters. Expects a hashmap cluster with values
         % as list of struct_voxels, centr
     %%
-    [~, ~, ~, ~, voxel_coord_target, voxel_coord_OAR, ~, ~, ~] = integerdownsample(mat_file, 1);
-    if target_or_OAR == "target"
-        coordinates = voxel_coord_target;
-    else
-        coordinates = voxel_coord_OAR;
-    end
+
     
     % Prepare for plotting the centroids
     centroids_x_beam1 = []; % beamlet idx <= 760

@@ -28,8 +28,8 @@ if pToAll
     k = floor(totalVoxels/value/100);
 end
 
-if pToAll
+if kToAll
     k = value;
     n = floor(totalVoxels/k);
-    p = round(k/totalVoxels*100);
+    p = round(k/totalVoxels*100,2);
 end

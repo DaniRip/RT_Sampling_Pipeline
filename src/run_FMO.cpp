@@ -85,6 +85,14 @@ void FMO(float &objVal, vector<float> &intensityVals, string &status, float &run
          w.add(IloNumVar(env,0,IloInfinity,ILOFLOAT));
       }
 
+       // Add dummy constraint to ensure all variables are included
+        IloExpr dummy(env);
+        for (int b = 0; b < NUMBEAMLETS; ++b) {
+            dummy += w[b];
+        }
+        model.add(dummy >= 0); // Dummy constraint, should not affect the solution
+        dummy.end();
+
       // Add basic FMO constraint:
       enforceMinTumorDose(D_tumor, w, vDose, env, model);
 
@@ -127,9 +135,9 @@ void FMO(float &objVal, vector<float> &intensityVals, string &status, float &run
       env.out() << endl << "Objective Value = " << cplex.getObjValue() << endl ;
       objVal = cplex.getObjValue();
 
-      env.out() << endl << "Intensity Values: " << endl ;
+      //env.out() << endl << "Intensity Values: " << endl ;
       for (b = 0; b < NUMBEAMLETS; b++) {
-         cout << cplex.getValue(w[b]) << endl;
+         //cout << cplex.getValue(w[b]) << endl;
          intensityVals.push_back(cplex.getValue(w[b]));
       }
    }

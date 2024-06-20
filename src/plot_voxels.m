@@ -1,15 +1,18 @@
-function plot_voxels(vox_coordinates)
+function plot_voxels(vox_coordinates, col)
 % INTEGERDOWNSAMPLE A quick function to return every n voxels
 %
 % Written by Gatik Gola Nov. 2023
 % Updated by Dani June 16, 2024
 %-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%
 
+
+if (~exist('col','var')|| isempty(col)); col = 'b'; end
+
 X = vox_coordinates(:, 1);
 Y = vox_coordinates(:, 2);
 Z = vox_coordinates(:, 3);
 
-plot3(X, Y, Z, '.');
+plot3(X, Y, Z, '.')%, 'Color', col);
 xlabel('X');
 ylabel('Y');
 zlabel('Z');
