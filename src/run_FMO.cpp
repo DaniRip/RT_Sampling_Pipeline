@@ -123,6 +123,8 @@ void FMO(float &objVal, vector<float> &intensityVals, string &status, float &run
       //cplex.setParam(IloCplex::Param::TimeLimit, 100);
 
       float* start {new float (cplex.getTime())};
+      cout<< "CPLEX Model num constraints:" << cplex.getNrows() << endl;
+      cout<< "CPLEX Model num variables:" << cplex.getNcols() << endl;
       cout << "Solving, here we go!" << "\n";
       cplex.solve();
       runtime = cplex.getTime()-*start;

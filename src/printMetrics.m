@@ -1,10 +1,11 @@
-function printMetrics(sol, d_target, d_OAR)
+function printMetrics(sol, d_target, d_OAR, voxelDim)
 % METRICS extracts dose and time metrics from output plans
 % 
 % Input:
 %   > d_target: The target dose-influence matrix
 %   > d_OAR: The OAR dose-influence matrix
 %   > sol: solution or set of solutions of the form sol.samplingtype.outputs
+%   > voxelDim: [x,y,z] in mm if exists for the DXcc calculations
 %
 % Output:
 %   > Two formulated-for-LaTeX sets of outputs
@@ -27,20 +28,30 @@ function printMetrics(sol, d_target, d_OAR)
 outputNames = fieldnames(sol);
 
 fprintf('The output times for LaTeX are:\n')
-fprintf('Name & Sample Time (sec) & Model Time (sec) \\\\ \\hline\n');
+fprintf('Name & Sample Time (sec) & Model Time (sec) & Actual Num Vox \\\\ \\hline\n');
 % Loop through all the output names
 for i = 1:length(outputNames)   
     % Extract the numeric value from the string
     FMOruntime = sscanf(sol.(outputNames{i}).FMOruntime, 'FMO Runtime = %f sec');
     sampRuntime = sol.(outputNames{i}).sampRuntime;
-    fprintf('%s & %.4f & %.4f \\\\ \\hline\n', outputNames{i}, round(sampRuntime, 4), round(FMOruntime, 4));
+    if isfield(sol, 'target_voxels')
+        numClusters = sol.target_voxels;
+    else
+        numClusters = size(d_target,1);
+    end
+    fprintf('%s & %.3f & %.3f & %d \\\\ \n', outputNames{i}, round(sampRuntime, 4), round(FMOruntime, 4), numClusters);
 end
 
-rowNames = {'& Avg$_\cH$', '& Max$_\cH$', '& Avg$_\cT$', ...
+if ~isempty(voxelDim)
+    rowNames = {'& Avg$_\cH$', '& D1cc', '& D10cc', '& Avg$_\cT$', ...
+            '& Min$_\cT$', '& D$0.5\%$', '& D$95\%$', '& D$99\%$'};
+else
+    rowNames = {'& Avg$_\cH$', '& Max$_\cH$', '& Avg$_\cT$', ...
             '& Min$_\cT$', '& Max$_\cT$', '& D$0.5\%$', '& D$95\%$', '& D$99\%$'};
+end
 
 title = 'Metric';
-matSummary =zeros(8,length(outputNames));
+matSummary = zeros(length(rowNames),length(outputNames));
 
 fprintf('\n\nThe output metrics for LaTeX are:\n')
 % For each type of method
@@ -48,24 +59,37 @@ for i = 1:length(outputNames)
     % Table header:    
     title = strcat([title, ' & ' outputNames{i}]);
 
+    count = 1;
+
     % Assign row-values
     v = d_OAR*sol.(outputNames{i}).w';
-    matSummary(1,i) = mean(v);
-    matSummary(2,i) = max(v);
+    matSummary(count,i) = mean(v); count = count+1;
+    if isempty(voxelDim)
+        matSummary(count,i) = max(v); count = count+1;
+    else
+        ccLoc = ceil(1/(voxelDim(1)*voxelDim(2)*voxelDim(3)));
+        tenccLoc = ceil(10/(voxelDim(1)*voxelDim(2)*voxelDim(3)));
+        v = sort(v,'descend');
+        matSummary(count,i) = v(ccLoc); count = count+1;
+        matSummary(count,i) = v(tenccLoc); count = count+1;
+    end
         
     v = d_target*sol.(outputNames{i}).w';
-    matSummary(3,i) = mean(v);
-    matSummary(4,i) = min(v);
-    matSummary(5,i) = max(v);
+    matSummary(count,i) = mean(v); count = count+1;
+    matSummary(count,i) = min(v); count = count+1;
+
+    if isempty(voxelDim)
+        matSummary(count,i) = max(v); count = count+1;
+    end
 
     numTvoxels = size(d_target,1);
     v = sort(v,'descend');
     %D0.5% 
-    matSummary(6,i) = v(ceil(0.005*numTvoxels)-1);
+    matSummary(count,i) = v(ceil(0.005*numTvoxels)-1); count = count+1;
     %D95% 
-    matSummary(7,i) = v(ceil(0.95*numTvoxels)-1);
+    matSummary(count,i) = v(ceil(0.95*numTvoxels)-1); count = count+1;
     %D99% 
-    matSummary(8,i) = v(ceil(0.99*numTvoxels)-1);
+    matSummary(count,i) = v(ceil(0.99*numTvoxels)-1);
 end
 
 fprintf(strcat(title,'\\\\\n'));

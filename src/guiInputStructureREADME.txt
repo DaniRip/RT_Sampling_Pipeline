@@ -1,0 +1,10 @@
+The fields of the guiInput structure 
+  > Dij: voxels x beamlets matrix
+  > structVoxels: substruct with voxel indices of each organ in Dij
+  > targets: target organ id(s) in structVoxels ordering
+  > OAR: sensitive organ id(s) in structVoxels ordering
+  > targetDose: Prescribed dose
+  > beamWidth: horizontal dimension of beamlet
+  > beamIndicies: [row, col, angle] indices for each voxel, sorted by row
+  > voxelIndices: I believe the [x,y,z] coord of each voxel
+  > voxelDim:[x,y,z] dimensions of the voxels

@@ -8,7 +8,7 @@ function [d_mat, final_voxel_indices, runtime] = integerdownsample(d_mat, n)
 
     voxel_indices = 1:(size(d_mat,1));
     final_voxel_indices = voxel_indices(1:n:end);
-    d_mat=d_mat(final_voxel_coords, :);
+    d_mat=d_mat(final_voxel_indices, :);
 
     runtime = toc(timerVal);
 
