@@ -2,15 +2,15 @@
 
 Welcome! This is a sampling pipeline setup, specifically calibrated for intensity modulated radiation therapy, or IMRT  treatments, but extensible to other modalities/problems.
 
-The pipeline takes in a specific Matlab .mat structure (outlined below), and provides sampling options through a GUI, that are loaded on the back end.
+The pipeline takes in a specific Matlab .mat structure (outlined below), and provides sampling options through a GUI.
 
-![Image Description](sampleOutputs/GUIloaded.png)
+<img src="sampleOutputs/GUIloaded.png" alt="picture of the GUI" width="500">
 
 To run the application, open samplingBenchmarkInterface.mlapp, run it to start the GUI, enter your custom parameters, select a .mat file, and run your cases. If you have an older version of Matlab that doesn't have app designer, we've also exported the GUI code to samplingBenchmarkInterface_exported.m. Running this should equivalently get the GUI running for you! 
 
 The sampling takes place in Matlab scripts, then the output is passed into a mexed in c++ file, that takes Matlab input, and runs a simple fluence map optimization using CPLEX.
 
-![Image Description](sampleOutputs/PipelineImg.png)
+<img src="sampleOutputs/PipelineImg.png" alt="pipeline image" width="500">
 
 Note, we do see the irony of releasing an open-source project that requires both CPLEX and Matlab. Unfortunately, for the ease of the pipeline both are necessary. CPLEX is free for download if you are a student and instructions are give below. Professionals may also be able to obtain a limited licence. 
 
@@ -53,4 +53,32 @@ mex('-I/Applications/CPLEX_Studio2211/cplex/include', ...
 
 3. To run the application, open samplingBenchmarkInterface.mlapp, enter your custom parameters, select a .mat file, and run
 
-# Provided Input
+# GUI Input
+
+The GUI expects imports with the following fields in a .mat file:
+  > Dij: voxels x beamlets matrix
+  > structVoxels: substruct with voxel indices of each organ in Dij
+  > targets: target organ id(s) in structVoxels ordering
+  > OAR: sensitive organ id(s) in structVoxels ordering
+  > targetDose: Prescribed dose
+  > beamWidth: horizontal dimension of beamlet
+  > beamIndicies: [row, col, angle] indices for each voxel, sorted by row
+  > voxelIndices: The [x,y,z] coord of each voxel
+
+As an example, we include the prostate from the CORT dataset, 
+(Craft D, Bangert M, Long T, Papp D, Unkelbach J. Shared data for intensity modulated radiation therapy (IMRT) optimization research: the CORT dataset. Gigascience. 2014 Dec 12;3(1):37. doi: 10.1186/2047-217X-3-37) and output a compatible file CORTProstate_guiInput.mat, which is available in the sampleData folder. The Dij and structures were calculated from matRad (Wieser, Hans‐Peter, et al. "Development of the open‐source dose calculation and optimization toolkit matRad." Medical physics 44.6 (2017): 2556-2568.).
+
+Here is how it looks in full:
+| ![Subfigure 1](sampleOutputs/prostateFull.png) | ![Subfigure 2](prostateFullAng2.png) |
+|:----------------------------------:|:----------------------------------:|
+| Figure 1: One angle of the prostate  | Figure 2: Another angle 	  |
+
+We ran it through, all sampling algorithms, and obtained the images below:
+| ![Subfigure 1](sampleOutputs/Integer10.png) | ![Subfigure 2](kmeansc10.png) |
+| ![Subfigure 1](sampleOutputs/kmeansD10.png) | ![Subfigure 2](kmeansN10.png) |
+| ![Subfigure 1](sampleOutputs/BBmed10.png) | ![Subfigure 2](Layered10.png) |
+
+
+# Cite
+If you want to know more about the algorithms, or use this pipeline, please see/cite our paper:
+Ripsman DA., Hristov S., Gola G., Kwong W., Singh M., Osei E., Darko J., Mahmoudzadeh, H.. "A Comparison of Voxel Down-Sampling Approaches for Radiation Therapy." TBA (2024).
