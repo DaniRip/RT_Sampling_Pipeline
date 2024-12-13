@@ -1,32 +1,56 @@
-# Automated Radiation Plan Evaluation
+# The Sampling RT Pipeline
+
+Welcome! This is a sampling pipeline setup, specifically calibrated for intensity modulated radiation therapy, or IMRT  treatments, but extensible to other modalities/problems.
+
+The pipeline takes in a specific Matlab .mat structure (outlined below), and provides sampling options through a GUI, that are loaded on the back end.
+
+![Image Description](sampleOutputs/GUIloaded.png)
+
+To run the application, open samplingBenchmarkInterface.mlapp, run it to start the GUI, enter your custom parameters, select a .mat file, and run your cases. If you have an older version of Matlab that doesn't have app designer, we've also exported the GUI code to samplingBenchmarkInterface_exported.m. Running this should equivalently get the GUI running for you! 
+
+The sampling takes place in Matlab scripts, then the output is passed into a mexed in c++ file, that takes Matlab input, and runs a simple fluence map optimization using CPLEX.
+
+![Image Description](sampleOutputs/PipelineImg.png)
+
+Note, we do see the irony of releasing an open-source project that requires both CPLEX and Matlab. Unfortunately, for the ease of the pipeline both are necessary. CPLEX is free for download if you are a student and instructions are give below. Professionals may also be able to obtain a limited licence. 
+
 
 ## Installation guide for Windows
 
-1. Install [CPLEX](https://community.ibm.com/community/user/datascience/blogs/xavier-nodet1/2020/07/09/cplex-free-for-students?CommunityKey=ab7de0fd-6f43-47a9-8261-33578a231bb7&tab=)
+1. Install [CPLEX](https://community.ibm.com/community/user/datascience/blogs/xavier-nodet1/2020/07/09/cplex-free-for-students?CommunityKey=ab7de0fd-6f43-47a9-8261-33578a231bb7&tab=) (links to student download site)
 
-* Make sure to keep track of the path to the following folders
+* Make sure to keep track of the path to the following folders on your computer
 
 * `C:\…\CPLEX_Studio201\cplex`
 
 * `C:\…\CPLEX_Studio201\concert`
 
-2. Install the Visual Studio C/C++ Compiler
+2. Install the Visual Studio C/C++ Compiler (if you don't already have one)
 
 * This application relies on the use of MATLAB mex files, which will not compile properly on other compilers like gcc or MINGW
 
 * In MATLAB, make sure the default C++ compiler is set to the Visual Studio C++ compiler
 
-3. Run `mex -setup cpp` in the MATLAB CLI
+3. Run `mex -setup cpp` in the MATLAB CL
 
 
 ## Compiling and running the application
 
-1. To compile the mex file, run the following line in the MATLAB CLI
+1. To compile the mex file on Windows, run the following line in the MATLAB CL:
 
 * `mex('-IC:\Program Files\IBM\ILOG\CPLEX_Studio201\cplex\include','-IC:\Program Files\IBM\ILOG\CPLEX_Studio201\concert\include','-LC:\Program Files\IBM\ILOG\CPLEX_Studio201\concert\lib\x64_windows_msvc14\stat_mda','-LC:\Program Files\IBM\ILOG\CPLEX_Studio201\cplex\lib\x64_windows_msvc14\stat_mda','-lcplex2010.lib','-lilocplex.lib','-lconcert.lib','run_FMO.cpp')`
+
+On Mac, its a similar call, and again will be download and infrastructure-specific:
+mex('-I/Applications/CPLEX_Studio2211/cplex/include', ...
+'-I/Applications/CPLEX_Studio2211/concert/include', ...
+'-L/Applications/CPLEX_Studio2211/concert/lib/arm64_osx/static_pic', ...
+'-L/Applications/CPLEX_Studio2211/cplex/lib/arm64_osx/static_pic', ...
+'-lcplex', '-lilocplex', '-lconcert', 'run_FMO.cpp')
 
 * this filepath may be different on your machine
 
 * If the mexfile was successfully compiled, you can verify by looking for a file with a .mexw64 extension
 
 3. To run the application, open samplingBenchmarkInterface.mlapp, enter your custom parameters, select a .mat file, and run
+
+# Provided Input
