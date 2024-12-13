@@ -73,16 +73,16 @@ As an example, we include the prostate from the CORT dataset,
 (Craft D, Bangert M, Long T, Papp D, Unkelbach J. Shared data for intensity modulated radiation therapy (IMRT) optimization research: the CORT dataset. Gigascience. 2014 Dec 12;3(1):37. doi: 10.1186/2047-217X-3-37) and output a compatible file CORTProstate_guiInput.mat, which is available in the sampleData folder. The Dij and structures were calculated from matRad (Wieser, Hans‐Peter, et al. "Development of the open‐source dose calculation and optimization toolkit matRad." Medical physics 44.6 (2017): 2556-2568.).
 
 Here is how it looks in full:
-| ![Subfigure 1](sampleOutputs/prostateFull.png) | ![Subfigure 2](prostateFullAng2.png) |
+| ![Subfigure 1](sampleOutputs/prostateFull.png) | ![Subfigure 2](sampleOutputs/prostateFullAng2.png) |
 |:----------------------------------------------:|:------------------------------------:|
 | Figure 1: One angle of the prostate            | Figure 2: Another angle              |
 
 We ran it through, all sampling algorithms, and obtained the images below:
-| ![Subfigure 1](sampleOutputs/Integer10.png) | ![Subfigure 2](kmeansc10.png) |
-|:-------------------------------------------:|:-----------------------------:|
-| ![Subfigure 1](sampleOutputs/kmeansD10.png) | ![Subfigure 2](kmeansN10.png) |
-|:-------------------------------------------:|:-----------------------------:|
-| ![Subfigure 1](sampleOutputs/BBmed10.png)   | ![Subfigure 2](Layered10.png) |
+| ![Subfigure 1](sampleOutputs/Integer10.png) | ![Subfigure 2](sampleOutputs/kmeansc10.png) |
+|:-------------------------------------------:|:-------------------------------------------:|
+| ![Subfigure 1](sampleOutputs/kmeansD10.png) | ![Subfigure 2](sampleOutputs/kmeansN10.png) |
+|:-------------------------------------------:|:-------------------------------------------:|
+| ![Subfigure 1](sampleOutputs/BBmed10.png)   | ![Subfigure 2](sampleOutputs/Layered10.png) |
 
 
 # Cite
