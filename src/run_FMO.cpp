@@ -118,7 +118,8 @@ void FMO(float &objVal, vector<float> &intensityVals, string &status, float &run
 
       // build model
       IloCplex cplex(model);
-      cplex.exportModel("basicFMO.lp");
+      // Uncomment to output/debug the model!
+      //cplex.exportModel("basicFMO.lp"); 
       cplex.setParam(IloCplex::EpGap, 1e-3);
       //cplex.setParam(IloCplex::Param::TimeLimit, 100);
 
