@@ -60,13 +60,14 @@ mex('-I/Applications/CPLEX_Studio2211/cplex/include', ...
 # GUI Input
 
 The GUI expects imports with the following fields in a .mat file:
-  > Dij: voxels x beamlets matrix
-  > structVoxels: substruct with voxel indices of each organ in Dij
-  > targets: target organ id(s) in structVoxels ordering
-  > OAR: sensitive organ id(s) in structVoxels ordering
-  > targetDose: Prescribed dose
-  > beamWidth: horizontal dimension of beamlet
-  > voxelIndices: The [x,y,z] coord of each voxel
+
+  - Dij: voxels x beamlets matrix
+  - structVoxels: substruct with voxel indices of each organ in Dij
+  - targets: target organ id(s) in structVoxels ordering
+  - OAR: sensitive organ id(s) in structVoxels ordering
+  - targetDose: Prescribed dose
+  - beamWidth: horizontal dimension of beamlet
+  - voxelIndices: The [x,y,z] coord of each voxel
 
 As an example, we include the prostate from the CORT dataset, 
 (Craft D, Bangert M, Long T, Papp D, Unkelbach J. Shared data for intensity modulated radiation therapy (IMRT) optimization research: the CORT dataset. Gigascience. 2014 Dec 12;3(1):37. doi: 10.1186/2047-217X-3-37) and output a compatible file CORTProstate_guiInput.mat, which is available in the sampleData folder. The Dij and structures were calculated from matRad (Wieser, Hans‐Peter, et al. "Development of the open‐source dose calculation and optimization toolkit matRad." Medical physics 44.6 (2017): 2556-2568.).
