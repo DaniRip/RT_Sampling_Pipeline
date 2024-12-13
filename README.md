@@ -66,7 +66,6 @@ The GUI expects imports with the following fields in a .mat file:
   > OAR: sensitive organ id(s) in structVoxels ordering
   > targetDose: Prescribed dose
   > beamWidth: horizontal dimension of beamlet
-  > beamIndicies: [row, col, angle] indices for each voxel, sorted by row
   > voxelIndices: The [x,y,z] coord of each voxel
 
 As an example, we include the prostate from the CORT dataset, 
@@ -77,14 +76,30 @@ Here is how it looks in full:
 |:----------------------------------------------:|:------------------------------------:|
 | Figure 1: One angle of the prostate            | Figure 2: Another angle              |
 
-We ran it through, all sampling algorithms, and obtained the images below:
+We ran it through, all sampling algorithms, and obtained the images below (try replicating it at 10x sampling rate on your device!):
 | ![Subfigure 1](sampleOutputs/Integer10.png) | ![Subfigure 2](sampleOutputs/kmeansc10.png) |
 |:-------------------------------------------:|:-------------------------------------------:|
 | ![Subfigure 1](sampleOutputs/kmeansD10.png) | ![Subfigure 2](sampleOutputs/kmeansN10.png) |
-|:-------------------------------------------:|:-------------------------------------------:|
 | ![Subfigure 1](sampleOutputs/BBmed10.png)   | ![Subfigure 2](sampleOutputs/Layered10.png) |
 
 
+#GUI Output
+After a successful run, the GUI will return a sol structure, that contains the outputs from each sampling method collected. It should provide an opportunity to save this structure wherever you like at the end of the run.
+
+# Known Tuning Issues
+Note, that if the layered method fails, you might need to change the alpha value in surfaceSampler_Gatik_v3.m. This code relies on Matlab's triangulation through the boundaryFacets() function. The alpha is based on the closeness of planes and too high or low may just return empty sets!
+
+# Customizing the Pipeline
+There are a number of elements you might want to customize
+## Adding input data
+Feel free! So long as the structure contains the minimum of what the interface is looking for, it will not care if you add in extra structures/fields
+## Updating the fluence optimization model
+You can edit the C++ code, re-mexing it in every time to compile, as desired. If you add something neat, let us know! 
+## Updating the sampling types/dropdown
+You can add/subtract whatever sampling algorithms you'd like. In the samplingBenchmarkInterface.mlapp code, you'll need to update 2 switch statements, the first in the RunButtonPushed() event, and the second in the subsequent runPlans() function that it calls. 
+
+Happy sampling!
+
 # Cite
-If you want to know more about the algorithms, or use this pipeline, please see/cite our paper:
+If you want to use this pipeline (and to learn more about the algorithms!), please cite our paper:
 Ripsman DA., Hristov S., Gola G., Kwong W., Singh M., Osei E., Darko J., Mahmoudzadeh, H.. "A Comparison of Voxel Down-Sampling Approaches for Radiation Therapy." TBA (2024).
