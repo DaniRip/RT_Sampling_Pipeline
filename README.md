@@ -4,13 +4,17 @@ Welcome! This is a sampling pipeline setup, specifically calibrated for intensit
 
 The pipeline takes in a specific Matlab .mat structure (outlined below), and provides sampling options through a GUI.
 
+<div style="text-align: center;">
 <img src="sampleOutputs/GUIloaded.png" alt="picture of the GUI" width="500">
+</div>
 
 To run the application, open samplingBenchmarkInterface.mlapp, run it to start the GUI, enter your custom parameters, select a .mat file, and run your cases. If you have an older version of Matlab that doesn't have app designer, we've also exported the GUI code to samplingBenchmarkInterface_exported.m. Running this should equivalently get the GUI running for you! 
 
 The sampling takes place in Matlab scripts, then the output is passed into a mexed in c++ file, that takes Matlab input, and runs a simple fluence map optimization using CPLEX.
 
+<div style="text-align: center;">
 <img src="sampleOutputs/PipelineImg.png" alt="pipeline image" width="500">
+</div>
 
 Note, we do see the irony of releasing an open-source project that requires both CPLEX and Matlab. Unfortunately, for the ease of the pipeline both are necessary. CPLEX is free for download if you are a student and instructions are give below. Professionals may also be able to obtain a limited licence. 
 
@@ -70,8 +74,8 @@ As an example, we include the prostate from the CORT dataset,
 
 Here is how it looks in full:
 | ![Subfigure 1](sampleOutputs/prostateFull.png) | ![Subfigure 2](prostateFullAng2.png) |
-|:----------------------------------:|:----------------------------------:|
-| Figure 1: One angle of the prostate  | Figure 2: Another angle 	  |
+|:----------------------------------------------:|:------------------------------------:|
+| Figure 1: One angle of the prostate            | Figure 2: Another angle              |
 
 We ran it through, all sampling algorithms, and obtained the images below:
 | ![Subfigure 1](sampleOutputs/Integer10.png) | ![Subfigure 2](kmeansc10.png) |
