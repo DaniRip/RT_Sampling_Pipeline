@@ -79,8 +79,10 @@ Here is how it looks in full:
 
 We ran it through, all sampling algorithms, and obtained the images below:
 | ![Subfigure 1](sampleOutputs/Integer10.png) | ![Subfigure 2](kmeansc10.png) |
+|:-------------------------------------------:|:-----------------------------:|
 | ![Subfigure 1](sampleOutputs/kmeansD10.png) | ![Subfigure 2](kmeansN10.png) |
-| ![Subfigure 1](sampleOutputs/BBmed10.png) | ![Subfigure 2](Layered10.png) |
+|:-------------------------------------------:|:-----------------------------:|
+| ![Subfigure 1](sampleOutputs/BBmed10.png)   | ![Subfigure 2](Layered10.png) |
 
 
 # Cite
