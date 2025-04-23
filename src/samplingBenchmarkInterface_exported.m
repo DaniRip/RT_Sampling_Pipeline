@@ -3,6 +3,8 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
     % Properties that correspond to app components
     properties (Access = public)
         UIFigure                      matlab.ui.Figure
+        MintargetsqdevCheckBox        matlab.ui.control.CheckBox
+        MinhealthysqdevCheckBox       matlab.ui.control.CheckBox
         VisualizeSamplingCheckBox     matlab.ui.control.CheckBox
         VisualizeButton               matlab.ui.control.Button
         numofclustersEditField        matlab.ui.control.EditField
@@ -25,9 +27,9 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
         UpperboundsCheckBox           matlab.ui.control.CheckBox
         UniformityCheckBox_2          matlab.ui.control.CheckBox
         FMOObjectivesLabel            matlab.ui.control.Label
-        MinhealthyCheckBox            matlab.ui.control.CheckBox
-        MintargetCheckBox             matlab.ui.control.CheckBox
-        UniformityCheckBox            matlab.ui.control.CheckBox
+        MinavghealthyCheckBox         matlab.ui.control.CheckBox
+        MinavgtargetCheckBox          matlab.ui.control.CheckBox
+        MintargetdevCheckBox          matlab.ui.control.CheckBox
         SamplingTypeDropDown          matlab.ui.control.DropDown
         SamplingTypeDropDownLabel     matlab.ui.control.Label
         PlanSelectionPanel            matlab.ui.container.Panel
@@ -41,7 +43,7 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
     
     methods (Access = private)
         
-        function [sol,nLayers] = runPlans(app, sol, type, optObjs, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetVCoords, p, k, n, l)
+        function [sol,nLayers] = runPlans(app, sol, type, optObjs, constraints, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetVCoords, p, k, n, l)
         % A separate function to actually run the plans
         % Note: the returned target_voxels is relative to the input tumor dij, not the absolute locations in the overall structure!
 
@@ -67,7 +69,7 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
                     if (visSamp); plot_voxels(targetVCoords, type); end
                 case "Beamlet-Based (max)"
                     [d_target, target_voxels, sol.clusters, sol.sampRuntime] = fountainclustering(d_target, k, 'max');
-                    if (visSamp); plot_voxels(targetVCoords(target_voxels,:),type); end
+                    if (visSamp); plot_voxels(targetVCoords(target_voxels,:), type); end
                 case "Beamlet-Based (med)"
                     [d_target, target_voxels, sol.clusters, sol.sampRuntime] = fountainclustering(d_target, k, 'med');
                     if (visSamp); plot_voxels(targetVCoords(target_voxels,:), type); end
@@ -76,11 +78,14 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
                     if (visSamp); plot_voxels(targetVCoords(target_voxels,:), type); end
                     disp(strcat(['Number of Voxels Selected: ',num2str(numel(target_voxels))]));
                     nLayers = numel(target_voxels);
+                case "Probing"
+                    [d_target, target_voxels, sol.sampRuntime] = probingDoseOptimization(d_target, 1, 500, k);
+                    if (visSamp); plot_voxels(targetVCoords(target_voxels,:), type); end
             end
             
             nTargetV = numel(target_voxels);
             sol.target_voxels = target_voxels;
-            [sol.status, sol.obj, sol.FMOruntime, sol.w] = run_FMO(optObjs, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose);
+            [sol.status, sol.obj, sol.FMOruntime, sol.w] = run_FMO(optObjs, constraints, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose);
             sol.inputs = [n, k, p, l];
             app.OutputTextArea.Value = strcat([app.OutputTextArea.Value; type; num2str(sol.status); num2str(sol.obj); sol.FMOruntime; strcat(['subtime: ',num2str(sol.sampRuntime)])]);
         end
@@ -94,7 +99,7 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
         function RunButtonPushed(app, event)
     
             constraints = [app.BasicdoseCheckBox.Value, app.CVaRCheckBox.Value, app.UpperboundsCheckBox.Value, app.UniformityCheckBox_2.Value];
-            optObjs = [app.MinhealthyCheckBox.Value, app.MintargetCheckBox.Value, app.UniformityCheckBox.Value];
+            optObjs = [app.MinavghealthyCheckBox.Value, app.MinavgtargetCheckBox.Value, app.MintargetdevCheckBox.Value, app.MinhealthysqdevCheckBox.Value, app.MintargetsqdevCheckBox.Value];
             samplingType = app.SamplingTypeDropDown.Value;
             layers = app.layersEditField.Value;
             voxelsPercent = app.voxelsEditField.Value;
@@ -107,7 +112,7 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
             end
 
             % Don't send things through if nothing is selected
-            if sum(constraints)==0 || sum(optObjs)==0
+            if sum(constraints)==0 && sum(optObjs)==0
                 app.OutputTextArea.Value = 'Choose a set of objectives and constraints!';
                 return
             end
@@ -142,38 +147,41 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
             % If we're running the full FMO, there's no reason for any sampling 
             if ((str2double(nSample)==1 || str2double(clusters) == nTargetV || str2double(voxelsPercent) ==100))
                 disp('Running the full model')
-                [sol.Full.status, sol.Full.obj, sol.Full.FMOruntime, sol.Full.w] = run_FMO(optObjs, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose);
+                [sol.Full.status, sol.Full.obj, sol.Full.FMOruntime, sol.Full.w] = run_FMO(optObjs, constraints, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose);
                 sol.Full.sampRuntime = 0;
             else % Otherwise, we need to see what type of sampling we're doing  
                 fprintf('Running in the mode %s\n', samplingType);
                 switch samplingType
                     case "Downsample"
                         sol.Integer =[];
-                        [sol.Integer, ~] = runPlans(app, sol.Integer, "Downsample", optObjs, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                        [sol.Integer, ~] = runPlans(app, sol.Integer, "Downsample", optObjs, constraints, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
                     case "k-Means (coord)"
                         sol.kmeanC =[];
-                        [sol.kmeanC, ~] = runPlans(app, sol.kmeanC, "k-Means (coord)", optObjs, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                        [sol.kmeanC, ~] = runPlans(app, sol.kmeanC, "k-Means (coord)", optObjs, constraints, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
                     case "k-Means (Dij)"
                         sol.kmeanD = [];
-                        [sol.kmeanD, ~] = runPlans(app, sol.kmeanD, "k-Means (Dij)", optObjs, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                        [sol.kmeanD, ~] = runPlans(app, sol.kmeanD, "k-Means (Dij)", optObjs, constraints, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
                     case "k-Neighbour"
                         sol.kmeanNN = [];
-                        [sol.kmeanNN, ~] = runPlans(app, sol.kmeanNN, "k-Neighbour", optObjs, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                        [sol.kmeanNN, ~] = runPlans(app, sol.kmeanNN, "k-Neighbour", optObjs, constraints, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
                     case "Beamlet-Based (max)"
                         sol.BBmax = [];
-                        [sol.BBmax, ~] = runPlans(app, sol.BBmax, "Beamlet-Based (max)", optObjs, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                        [sol.BBmax, ~] = runPlans(app, sol.BBmax, "Beamlet-Based (max)", optObjs, constraints, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
                     case "Beamlet-Based (med)"
                         sol.BBmed = [];
-                        [sol.BBmed, ~] = runPlans(app, sol.BBmed, "Beamlet-Based (med)", optObjs, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                        [sol.BBmed, ~] = runPlans(app, sol.BBmed, "Beamlet-Based (med)", optObjs, constraints, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
                     case "Layered" 
                         sol.Layered = [];
-                        [sol.Layered, ~] = runPlans(app, sol.Layered, "Layered", optObjs, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                        [sol.Layered, ~] = runPlans(app, sol.Layered, "Layered", optObjs, constraints, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                    case "Probing"
+                        sol.Probing = [];
+                        [sol.Probing, ~] = runPlans(app, sol.Probing, "Probing", optObjs, constraints, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
                     case "All"
-                        sol.Integer =[]; sol.kmeanC =[];sol.kmeanD = [];sol.kmeanNN = [];sol.BBmax = [];sol.BBmed = [];sol.Layered = [];
+                        sol.Integer =[]; sol.kmeanC =[];sol.kmeanD = [];sol.kmeanNN = [];sol.BBmax = [];sol.BBmed = [];sol.Layered = [];sol.Probing=[];
                         % If sample-first run conversions for the others
                         if ~isempty(layers) 
                              % Need to run layered approach first if its determining the sampling. 
-                            [sol.Layered, ~] = runPlans(app, sol.Layered, "Layered", optObjs, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                            [sol.Layered, ~] = runPlans(app, sol.Layered, "Layered", optObjs, constraints, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
                             [n,k,p] = sampleConversion(0, 1, 0, numel(target_voxels), target_voxels);
                             app.SampleintervalEditField.Value = num2str(n);
                             app.voxelsEditField.Value = num2str(p);
@@ -181,14 +189,15 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
                             app.layersEditField.Value = num2str(k);
                         end
                         % Then run all others:  
-                        [sol.Integer, ~] = runPlans(app, sol.Integer, "Downsample", optObjs, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
-                        [sol.kmeanC, ~] = runPlans(app, sol.kmeanC, "k-Means (coord)", optObjs, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
-                        [sol.kmeanD, ~] = runPlans(app, sol.kmeanD, "k-Means (Dij)", optObjs, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
-                        [sol.kmeanNN, ~] = runPlans(app, sol.kmeanNN, "k-Neighbour", optObjs, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
-                        [sol.BBmax, ~] = runPlans(app, sol.BBmax, "Beamlet-Based (max)", optObjs, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
-                        [sol.BBmed, ~] = runPlans(app, sol.BBmed, "Beamlet-Based (med)", optObjs, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                        [sol.Integer, ~] = runPlans(app, sol.Integer, "Downsample", optObjs, constraints, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                        [sol.kmeanC, ~] = runPlans(app, sol.kmeanC, "k-Means (coord)", optObjs, constraints, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                        [sol.kmeanD, ~] = runPlans(app, sol.kmeanD, "k-Means (Dij)", optObjs, constraints, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                        [sol.kmeanNN, ~] = runPlans(app, sol.kmeanNN, "k-Neighbour", optObjs, constraints, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                        [sol.BBmax, ~] = runPlans(app, sol.BBmax, "Beamlet-Based (max)", optObjs, constraints, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                        [sol.BBmed, ~] = runPlans(app, sol.BBmed, "Beamlet-Based (med)", optObjs, constraints, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
+                        [sol.Probing, ~] = runPlans(app, sol.Probing, "Probing", optObjs, constraints, d_target, d_OAR, target_voxels, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);
                         if isempty(layers) % Keep the sequence for the sake of our tables!
-                            [sol.Layered, ~] = runPlans(app, sol.Layered, "Layered", optObjs, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);        
+                            [sol.Layered, ~] = runPlans(app, sol.Layered, "Layered", optObjs, constraints, d_target, d_OAR, nTargetV, nOARV, nBeamlets, pdose, targetCoords, p, k, n, l);        
                         end
                 end
             end
@@ -334,28 +343,27 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
 
             % Create SamplingTypeDropDown
             app.SamplingTypeDropDown = uidropdown(app.UIFigure);
-            app.SamplingTypeDropDown.Items = {'Downsample', 'k-Means (coord)', 'k-Means (Dij)', 'k-Neighbour', 'Beamlet-Based (max)', 'Beamlet-Based (med)', 'Layered', 'All'};
+            app.SamplingTypeDropDown.Items = {'Downsample', 'k-Means (coord)', 'k-Means (Dij)', 'k-Neighbour', 'Beamlet-Based (max)', 'Beamlet-Based (med)', 'Layered', 'Probing', 'All'};
             app.SamplingTypeDropDown.ValueChangedFcn = createCallbackFcn(app, @SamplingTypeChange, true);
             app.SamplingTypeDropDown.Position = [116 314 118 22];
             app.SamplingTypeDropDown.Value = 'Downsample';
 
-            % Create UniformityCheckBox
-            app.UniformityCheckBox = uicheckbox(app.UIFigure);
-            app.UniformityCheckBox.Enable = 'off';
-            app.UniformityCheckBox.Text = 'Uniformity';
-            app.UniformityCheckBox.Position = [287 251 76 22];
+            % Create MintargetdevCheckBox
+            app.MintargetdevCheckBox = uicheckbox(app.UIFigure);
+            app.MintargetdevCheckBox.Text = 'Min. target dev.';
+            app.MintargetdevCheckBox.Position = [287 251 105 22];
 
-            % Create MintargetCheckBox
-            app.MintargetCheckBox = uicheckbox(app.UIFigure);
-            app.MintargetCheckBox.Text = 'Min. target';
-            app.MintargetCheckBox.Position = [287 272 79 22];
-            app.MintargetCheckBox.Value = true;
+            % Create MinavgtargetCheckBox
+            app.MinavgtargetCheckBox = uicheckbox(app.UIFigure);
+            app.MinavgtargetCheckBox.Text = 'Min. avg. target';
+            app.MinavgtargetCheckBox.Position = [287 272 105 22];
+            app.MinavgtargetCheckBox.Value = true;
 
-            % Create MinhealthyCheckBox
-            app.MinhealthyCheckBox = uicheckbox(app.UIFigure);
-            app.MinhealthyCheckBox.Text = 'Min. healthy';
-            app.MinhealthyCheckBox.Position = [287 293 87 22];
-            app.MinhealthyCheckBox.Value = true;
+            % Create MinavghealthyCheckBox
+            app.MinavghealthyCheckBox = uicheckbox(app.UIFigure);
+            app.MinavghealthyCheckBox.Text = 'Min. avg. healthy';
+            app.MinavghealthyCheckBox.Position = [287 293 113 22];
+            app.MinavghealthyCheckBox.Value = true;
 
             % Create FMOObjectivesLabel
             app.FMOObjectivesLabel = uilabel(app.UIFigure);
@@ -366,29 +374,29 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
             app.UniformityCheckBox_2 = uicheckbox(app.UIFigure);
             app.UniformityCheckBox_2.Enable = 'off';
             app.UniformityCheckBox_2.Text = 'Uniformity';
-            app.UniformityCheckBox_2.Position = [423 230 76 22];
+            app.UniformityCheckBox_2.Position = [436 230 76 22];
 
             % Create UpperboundsCheckBox
             app.UpperboundsCheckBox = uicheckbox(app.UIFigure);
             app.UpperboundsCheckBox.Enable = 'off';
             app.UpperboundsCheckBox.Text = 'Upper bounds';
-            app.UpperboundsCheckBox.Position = [423 251 97 22];
+            app.UpperboundsCheckBox.Position = [436 251 97 22];
 
             % Create CVaRCheckBox
             app.CVaRCheckBox = uicheckbox(app.UIFigure);
             app.CVaRCheckBox.Enable = 'off';
             app.CVaRCheckBox.Text = 'CVaR';
-            app.CVaRCheckBox.Position = [423 272 53 22];
+            app.CVaRCheckBox.Position = [436 272 53 22];
 
             % Create BasicdoseCheckBox
             app.BasicdoseCheckBox = uicheckbox(app.UIFigure);
             app.BasicdoseCheckBox.Text = 'Basic dose';
-            app.BasicdoseCheckBox.Position = [423 293 81 22];
+            app.BasicdoseCheckBox.Position = [436 293 81 22];
             app.BasicdoseCheckBox.Value = true;
 
             % Create FMOConstraintsLabel
             app.FMOConstraintsLabel = uilabel(app.UIFigure);
-            app.FMOConstraintsLabel.Position = [423 314 96 22];
+            app.FMOConstraintsLabel.Position = [436 314 96 22];
             app.FMOConstraintsLabel.Text = 'FMO Constraints';
 
             % Create RunButton
@@ -476,7 +484,17 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
             % Create VisualizeSamplingCheckBox
             app.VisualizeSamplingCheckBox = uicheckbox(app.UIFigure);
             app.VisualizeSamplingCheckBox.Text = 'Visualize Sampling';
-            app.VisualizeSamplingCheckBox.Position = [260 190 133 22];
+            app.VisualizeSamplingCheckBox.Position = [359 139 133 22];
+
+            % Create MinhealthysqdevCheckBox
+            app.MinhealthysqdevCheckBox = uicheckbox(app.UIFigure);
+            app.MinhealthysqdevCheckBox.Text = 'Min. healthy sq. dev.';
+            app.MinhealthysqdevCheckBox.Position = [287 229 132 22];
+
+            % Create MintargetsqdevCheckBox
+            app.MintargetsqdevCheckBox = uicheckbox(app.UIFigure);
+            app.MintargetsqdevCheckBox.Text = 'Min. target sq. dev.';
+            app.MintargetsqdevCheckBox.Position = [287 208 125 22];
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

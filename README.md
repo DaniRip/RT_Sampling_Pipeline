@@ -5,7 +5,7 @@ Welcome! This is a sampling pipeline setup, specifically calibrated for intensit
 The pipeline takes in a specific Matlab .mat structure (outlined below), and provides sampling options through a GUI.
 
 <div style="text-align: center;">
-<img src="sampleOutputs/GUIloaded.png" alt="picture of the GUI" width="500">
+<img src="sampleOutputs/GUIloaded2.png" alt="picture of the GUI" width="500">
 </div>
 
 To run the application, open samplingBenchmarkInterface.mlapp, run it to start the GUI, enter your custom parameters, select a .mat file, and run your cases. If you have an older version of Matlab that doesn't have app designer, we've also exported the GUI code to samplingBenchmarkInterface_exported.m. Running this should equivalently get the GUI running for you! 
@@ -45,11 +45,12 @@ Note, we do see the irony of releasing an open-source project that requires both
 * `mex('-IC:\Program Files\IBM\ILOG\CPLEX_Studio201\cplex\include','-IC:\Program Files\IBM\ILOG\CPLEX_Studio201\concert\include','-LC:\Program Files\IBM\ILOG\CPLEX_Studio201\concert\lib\x64_windows_msvc14\stat_mda','-LC:\Program Files\IBM\ILOG\CPLEX_Studio201\cplex\lib\x64_windows_msvc14\stat_mda','-lcplex2010.lib','-lilocplex.lib','-lconcert.lib','run_FMO.cpp')`
 
 On Mac, its a similar call, and again will be download and infrastructure-specific:
-mex('-I/Applications/CPLEX_Studio2211/cplex/include', ...
+
+* `mex('-I/Applications/CPLEX_Studio2211/cplex/include', ...
 '-I/Applications/CPLEX_Studio2211/concert/include', ...
 '-L/Applications/CPLEX_Studio2211/concert/lib/arm64_osx/static_pic', ...
 '-L/Applications/CPLEX_Studio2211/cplex/lib/arm64_osx/static_pic', ...
-'-lcplex', '-lilocplex', '-lconcert', 'run_FMO.cpp')
+'-lcplex', '-lilocplex', '-lconcert', 'run_FMO.cpp')`
 
 * this filepath may be different on your machine
 
@@ -81,10 +82,11 @@ We ran it through, all sampling algorithms, and obtained the images below (try r
 | ![Subfigure 1](sampleOutputs/Integer10.png) | ![Subfigure 2](sampleOutputs/kmeansc10.png) |
 |:-------------------------------------------:|:-------------------------------------------:|
 | ![Subfigure 1](sampleOutputs/kmeansD10.png) | ![Subfigure 2](sampleOutputs/kmeansN10.png) |
+| ![Subfigure 1](sampleOutputs/BBmax10.png)   | ![Subfigure 2](sampleOutputs/probing10.png) |
 | ![Subfigure 1](sampleOutputs/BBmed10.png)   | ![Subfigure 2](sampleOutputs/Layered10.png) |
 
 
-#GUI Output
+# GUI Output
 After a successful run, the GUI will return a sol structure, that contains the outputs from each sampling method collected. It should provide an opportunity to save this structure wherever you like at the end of the run.
 
 # Known Tuning Issues
