@@ -105,4 +105,4 @@ Happy sampling!
 
 # Cite
 If you want to use this pipeline (and to learn more about the algorithms!), please cite our paper:
-Ripsman DA., Hristov S., Gola G., Kwong W., Singh M., Osei E., Darko J., Mahmoudzadeh, H.. "A Comparison of Voxel Down-Sampling Approaches for Radiation Therapy." TBA (2024).
+Ripsman DA., Hristov S., Gola G., Kwong W., Singh M., Osei E., Darko J., Mahmoudzadeh, H.. "A Comparison of Voxel Down-Sampling Approaches for Radiation Therapy." TBA (2025).
