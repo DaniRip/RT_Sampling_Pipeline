@@ -24,13 +24,13 @@ function [d_mat, final_voxel_coords, runtime] = surfaceSampler_Gatik_v3(d_mat, c
     layer = 0;
     indices = 1:size(points, 1);
     indices=indices';
-    alpha_value = 3.0;%1.5;%2.0; % Pick max voxel dimension from (x, y, z)
+    %alpha_value = 5;%2.0; % Pick max voxel dimension from (x, y, z)
     while ~isempty(points)
         layer = layer + 1;
         x = points(:, 1);
         y = points(:, 2);
         z = points(:, 3);
-        shp = alphaShape(x, y, z, alpha_value);
+        shp = alphaShape(x, y, z);%, alpha_value); % let it choose its own!
         boundary_facets = boundaryFacets(shp);
         boundary_points_indices = unique(boundary_facets(:));
         if isempty(boundary_points_indices)

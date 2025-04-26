@@ -28,7 +28,7 @@ public:
         }
 
         matlab::data::TypedArray<bool> con_array = std::move(inputs[inputNum++]);
-        bool cons[5];
+        bool cons[2];
         count = 0;
         for (auto& val : con_array)
         {
@@ -105,8 +105,12 @@ void FMO(float &objVal, vector<float> &intensityVals, string &status, float &run
         dummy.end();
 
       // Add basic FMO constraint:
-      if (cons[0] == 1) // Min total normed OAR dose 
+      if (cons[0] == 1) // Enforce prescribed OAR dose 
         enforceMinTumorDose(D_tumor, w, vDose, env, model);
+
+      // Add average FMO constraint:
+      if (cons[1] == 1) // Enforce average OAR dose
+        enforceAvgTumorDose(D_tumor, w, vDose, env, model);  
 
       IloExpr ObjDose(env);
       IloExtractable OriginalObj;
@@ -228,6 +232,26 @@ static void enforceMinTumorDose(IloNumArray2 D, IloNumVarArray w, IloNumArray vD
    }
 }
 
+/* Partial constraint for restricting the average minimum dose on all tumor voxels*/
+static void enforceAvgTumorDose(IloNumArray2 D, IloNumVarArray w, IloNumArray vDose, IloEnv env, IloModel model)
+{
+   
+   IloInt b, v;
+      
+   cout << "Adding AVERAGE tumor dose-minimum constraint" << endl;
+   IloExpr doseConstTumor(env);
+            
+   for (v = 0; v < NUMTUMORVOXELS; v++) {
+      for (b = 0; b < NUMBEAMLETS; b++) {
+         doseConstTumor+=D[v][b]*w[b];                
+      }
+   }
+   // Assume all same dose for now
+   model.add(doseConstTumor >= vDose[0]*NUMTUMORVOXELS);
+   doseConstTumor.end();
+
+}    
+
 /* Create a dose-minimizing objective function */
 static void minimizeDose(IloInt numVoxels, IloNumArray2 D, IloNumVarArray w, IloExpr dose, string name)
 {
@@ -292,3 +316,4 @@ static void minimizeAbsDose(IloInt numVoxels, IloNumArray2 D, IloNumVarArray w, 
         dose += (d_plus[v]+d_minus[v])/numVoxels;      
     }
 }
+
