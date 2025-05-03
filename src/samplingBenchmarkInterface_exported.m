@@ -23,13 +23,11 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
         RunButton                     matlab.ui.control.Button
         FMOConstraintsLabel           matlab.ui.control.Label
         BasicdoseCheckBox             matlab.ui.control.CheckBox
-        CVaRCheckBox                  matlab.ui.control.CheckBox
-        UpperboundsCheckBox           matlab.ui.control.CheckBox
-        UniformityCheckBox_2          matlab.ui.control.CheckBox
+        AvgdoseCheckBox               matlab.ui.control.CheckBox
         FMOObjectivesLabel            matlab.ui.control.Label
         MinavghealthyCheckBox         matlab.ui.control.CheckBox
         MinavgtargetCheckBox          matlab.ui.control.CheckBox
-        MintargetdevCheckBox          matlab.ui.control.CheckBox
+        MinabstargetCheckBox          matlab.ui.control.CheckBox
         SamplingTypeDropDown          matlab.ui.control.DropDown
         SamplingTypeDropDownLabel     matlab.ui.control.Label
         PlanSelectionPanel            matlab.ui.container.Panel
@@ -98,8 +96,8 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
         % Button pushed function: RunButton
         function RunButtonPushed(app, event)
     
-            constraints = [app.BasicdoseCheckBox.Value, app.CVaRCheckBox.Value, app.UpperboundsCheckBox.Value, app.UniformityCheckBox_2.Value];
-            optObjs = [app.MinavghealthyCheckBox.Value, app.MinavgtargetCheckBox.Value, app.MintargetdevCheckBox.Value, app.MinhealthysqdevCheckBox.Value, app.MintargetsqdevCheckBox.Value];
+            constraints = [app.BasicdoseCheckBox.Value, app.AvgdoseCheckBox.Value];
+            optObjs = [app.MinavghealthyCheckBox.Value, app.MinavgtargetCheckBox.Value, app.MinabstargetCheckBox.Value, app.MinhealthysqdevCheckBox.Value, app.MintargetsqdevCheckBox.Value];
             samplingType = app.SamplingTypeDropDown.Value;
             layers = app.layersEditField.Value;
             voxelsPercent = app.voxelsEditField.Value;
@@ -138,7 +136,7 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
             nOARV = numel(app.inputData.structVoxels.OAR);
             d_target = app.inputData.Dij(app.inputData.structVoxels.target(:), :);
             d_OAR = app.inputData.Dij(app.inputData.structVoxels.OAR(:), :);
-            targetCoords = app.inputData.voxelIndices.target(target_voxels,:);
+            targetCoords = app.inputData.voxelIndices.target;
             if ~isempty(clusters); k = str2double(clusters); else k =[]; end
             if ~isempty(nSample); n = str2double(nSample); else n =[];  end
             if ~isempty(voxelsPercent); p = str2double(voxelsPercent); else p =[];  end
@@ -231,6 +229,10 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
             input = tempInput.(fieldNames{1});
             app.inputData = input;
             app.PlaninfoLabel.Text = strcat(['Plan info: ', num2str(size(input.Dij,1)), ' Voxels; ', num2str(numel(input.structVoxels.target)), ' target, ', num2str(numel(input.structVoxels.OAR)), ' OAR. ',num2str(size(input.Dij,2)), ' Beamlets.']);
+            app.SampleintervalEditField.Value='';
+            app.numofclustersEditField.Value = '';
+            app.voxelsEditField.Value = '';
+            app.layersEditField.Value='';   
         end
 
         % Button pushed function: VisualizeButton
@@ -348,10 +350,10 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
             app.SamplingTypeDropDown.Position = [116 314 118 22];
             app.SamplingTypeDropDown.Value = 'Downsample';
 
-            % Create MintargetdevCheckBox
-            app.MintargetdevCheckBox = uicheckbox(app.UIFigure);
-            app.MintargetdevCheckBox.Text = 'Min. target dev.';
-            app.MintargetdevCheckBox.Position = [287 251 105 22];
+            % Create MinabstargetCheckBox
+            app.MinabstargetCheckBox = uicheckbox(app.UIFigure);
+            app.MinabstargetCheckBox.Text = 'Min. abs. target';
+            app.MinabstargetCheckBox.Position = [287 251 106 22];
 
             % Create MinavgtargetCheckBox
             app.MinavgtargetCheckBox = uicheckbox(app.UIFigure);
@@ -370,33 +372,20 @@ classdef samplingBenchmarkInterface_exported < matlab.apps.AppBase
             app.FMOObjectivesLabel.Position = [287 314 91 22];
             app.FMOObjectivesLabel.Text = 'FMO Objectives';
 
-            % Create UniformityCheckBox_2
-            app.UniformityCheckBox_2 = uicheckbox(app.UIFigure);
-            app.UniformityCheckBox_2.Enable = 'off';
-            app.UniformityCheckBox_2.Text = 'Uniformity';
-            app.UniformityCheckBox_2.Position = [436 230 76 22];
-
-            % Create UpperboundsCheckBox
-            app.UpperboundsCheckBox = uicheckbox(app.UIFigure);
-            app.UpperboundsCheckBox.Enable = 'off';
-            app.UpperboundsCheckBox.Text = 'Upper bounds';
-            app.UpperboundsCheckBox.Position = [436 251 97 22];
-
-            % Create CVaRCheckBox
-            app.CVaRCheckBox = uicheckbox(app.UIFigure);
-            app.CVaRCheckBox.Enable = 'off';
-            app.CVaRCheckBox.Text = 'CVaR';
-            app.CVaRCheckBox.Position = [436 272 53 22];
+            % Create AvgdoseCheckBox
+            app.AvgdoseCheckBox = uicheckbox(app.UIFigure);
+            app.AvgdoseCheckBox.Text = 'Avg. dose';
+            app.AvgdoseCheckBox.Position = [449 272 76 22];
 
             % Create BasicdoseCheckBox
             app.BasicdoseCheckBox = uicheckbox(app.UIFigure);
             app.BasicdoseCheckBox.Text = 'Basic dose';
-            app.BasicdoseCheckBox.Position = [436 293 81 22];
+            app.BasicdoseCheckBox.Position = [449 293 81 22];
             app.BasicdoseCheckBox.Value = true;
 
             % Create FMOConstraintsLabel
             app.FMOConstraintsLabel = uilabel(app.UIFigure);
-            app.FMOConstraintsLabel.Position = [436 314 96 22];
+            app.FMOConstraintsLabel.Position = [449 314 96 22];
             app.FMOConstraintsLabel.Text = 'FMO Constraints';
 
             % Create RunButton
